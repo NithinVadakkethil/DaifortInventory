@@ -1,9 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet, Modal, FlatList, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
-import { X, User } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Modal, FlatList, TouchableOpacity, TouchableWithoutFeedback, TextInput } from 'react-native';
+import { Search, X, User } from 'lucide-react-native';
 import { useCustomers } from '../hooks/useCustomers';
 import { useCustomerStore, CustomerType } from '../store/useCustomerStore';
 import { colors, spacing, typography, rounded } from '../theme';
+import { AddCustomerModal } from './AddCustomerModal';
+import { Plus } from 'lucide-react-native';
 
 interface CustomerSelectorProps {
   visible: boolean;
@@ -11,8 +13,18 @@ interface CustomerSelectorProps {
 }
 
 export const CustomerSelector = ({ visible, onClose }: CustomerSelectorProps) => {
-  const { customers, loading } = useCustomers();
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const { customers, loading, refetch } = useCustomers(debouncedSearch);
   const selectCustomer = useCustomerStore((state) => state.selectCustomer);
+  const [isAddModalVisible, setAddModalVisible] = useState(false);
+
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [search]);
 
   const handleSelect = (customer: CustomerType) => {
     selectCustomer(customer);
@@ -32,9 +44,35 @@ export const CustomerSelector = ({ visible, onClose }: CustomerSelectorProps) =>
             <View style={styles.modalContent}>
               <View style={styles.header}>
                 <Text style={styles.title}>Select Customer</Text>
-                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                  <X size={24} color={colors.onSurfaceVariant} />
-                </TouchableOpacity>
+                <View style={styles.headerActions}>
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => setAddModalVisible(true)}
+                  >
+                    <Plus size={20} color={colors.onPrimary} />
+                    <Text style={styles.addText}>Add</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                    <X size={24} color={colors.onSurfaceVariant} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <AddCustomerModal
+                visible={isAddModalVisible}
+                onClose={() => setAddModalVisible(false)}
+                onSuccess={refetch}
+              />
+
+              <View style={styles.searchContainer}>
+                <Search color={colors.outline} size={18} style={styles.searchIcon} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search customer..."
+                  placeholderTextColor={colors.outline}
+                  value={search}
+                  onChangeText={setSearch}
+                />
               </View>
 
               {loading ? (
@@ -58,6 +96,7 @@ export const CustomerSelector = ({ visible, onClose }: CustomerSelectorProps) =>
                     </TouchableOpacity>
                   )}
                   contentContainerStyle={styles.list}
+                  ListEmptyComponent={<Text style={styles.loadingText}>No customers found.</Text>}
                 />
               )}
             </View>
@@ -97,8 +136,43 @@ const styles = StyleSheet.create({
     ...typography.headlineMd,
     color: colors.onSurface,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.xs,
+    borderRadius: rounded.default,
+    marginRight: spacing.m,
+  },
+  addText: {
+    ...typography.labelMd,
+    color: colors.onPrimary,
+    marginLeft: spacing.xs,
+  },
   closeButton: {
     padding: spacing.xs,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.surfaceContainer,
+    borderRadius: rounded.default,
+    paddingHorizontal: spacing.s,
+    marginBottom: spacing.m,
+  },
+  searchIcon: {
+    marginRight: spacing.xs,
+  },
+  searchInput: {
+    flex: 1,
+    height: 42,
+    color: colors.onSurface,
   },
   list: {
     flexGrow: 1,

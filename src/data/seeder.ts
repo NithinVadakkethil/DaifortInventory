@@ -1,13 +1,13 @@
 import SQLite from 'react-native-sqlite-storage';
 
 const INITIAL_PRODUCTS = [
-  { name: 'Stainless Steel Skillet 12"', price: 45.99, category: 'Cookware', image: 'https://via.placeholder.com/150', stock: 150 },
-  { name: 'Non-Stick Frying Pan 10"', price: 34.50, category: 'Cookware', image: 'https://via.placeholder.com/150', stock: 80 },
-  { name: 'Professional Chef Knife 8"', price: 89.99, category: 'Cutlery', image: 'https://via.placeholder.com/150', stock: 45 },
+  { name: 'Stainless Steel Skillet', price: 45.99, category: 'Cookware', image: 'https://www.hometown.in/cdn/shop/files/1_807bcd15-c754-4efa-9b90-c6111d24a01e.jpg?v=1764794999', stock: 150 },
+  { name: 'Non-Stick Frying Pan', price: 34.50, category: 'Cookware', image: 'https://via.placeholder.com/150', stock: 80 },
+  { name: 'Professional Chef Knife', price: 89.99, category: 'Cutlery', image: 'https://shop.khamir.org/cdn/shop/files/Cleaver-2.jpg?v=1697882847', stock: 45 },
   { name: 'Heavy Duty Stock Pot 20Qt', price: 120.00, category: 'Cookware', image: 'https://via.placeholder.com/150', stock: 25 },
   { name: 'Cast Iron Dutch Oven 6Qt', price: 65.00, category: 'Cookware', image: 'https://via.placeholder.com/150', stock: 100 },
   { name: 'Wooden Cutting Board', price: 25.00, category: 'Prep', image: 'https://via.placeholder.com/150', stock: 200 },
-  { name: 'Digital Kitchen Scale', price: 30.00, category: 'Electronics', image: 'https://via.placeholder.com/150', stock: 60 },
+  { name: 'Digital Kitchen Scale', price: 30.00, category: 'Electronics', image: 'https://m.media-amazon.com/images/I/71yd9uEY0uL._SX522_.jpg', stock: 60 },
   { name: 'Whisk Set (3-Piece)', price: 15.00, category: 'Utensils', image: 'https://via.placeholder.com/150', stock: 120 },
   { name: 'Silicone Spatula Set', price: 18.50, category: 'Utensils', image: 'https://via.placeholder.com/150', stock: 150 },
   { name: 'Mixing Bowls (Stainless)', price: 40.00, category: 'Prep', image: 'https://via.placeholder.com/150', stock: 90 },

@@ -5,8 +5,9 @@ import { useCartStore } from '../store/useCartStore';
 import { useCustomerStore } from '../store/useCustomerStore';
 import { CartItem } from './CartItem';
 import { colors, spacing, typography, rounded } from '../theme';
-import { generateInvoiceAndShare } from '../services/pdfService';
+import { shareOrderToWhatsApp } from '../services/whatsappService';
 import { CustomerSelector } from './CustomerSelector';
+import { insertOrder } from '../data/db';
 
 export const OrderSummaryPanel = () => {
   const items = useCartStore((state) => state.items);
@@ -18,21 +19,42 @@ export const OrderSummaryPanel = () => {
   const [isCustomerSelectorVisible, setCustomerSelectorVisible] = useState(false);
 
   const total = getCartTotal();
-  const tax = total * 0.08; // Assuming 8% tax
-  const grandTotal = total + tax;
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
-  const handleCheckout = async () => {
+  const handleShareToWhatsApp = async () => {
     setIsCheckingOut(true);
-    const success = await generateInvoiceAndShare(items, selectedCustomer, total, tax);
-    setIsCheckingOut(false);
+    const success = await shareOrderToWhatsApp(items, selectedCustomer, total);
     
     if (success) {
-      Alert.alert('Order Complete', 'Invoice has been generated successfully.', [
-        { text: 'OK', onPress: () => clearCart() }
-      ]);
+      // Save order to database
+      try {
+        const orderItems = items.map(item => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+          price: item.product.price
+        }));
+        
+        await insertOrder(
+          selectedCustomer ? selectedCustomer.id : null,
+          total,
+          new Date().toISOString(),
+          'completed',
+          orderItems
+        );
+        
+        Alert.alert('Shared', 'Order details shared to WhatsApp.', [
+          { text: 'OK', onPress: () => clearCart() }
+        ]);
+      } catch (error) {
+        console.error('Failed to save order to database', error);
+        Alert.alert('Warning', 'Shared to WhatsApp but failed to save order locally.');
+        clearCart();
+      }
     } else {
-      Alert.alert('Error', 'Could not generate or share invoice.');
+      Alert.alert('Error', 'Could not share order to WhatsApp.');
     }
+    
+    setIsCheckingOut(false);
   };
 
   return (
@@ -74,27 +96,23 @@ export const OrderSummaryPanel = () => {
 
       <View style={styles.footer}>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Subtotal</Text>
-          <Text style={styles.summaryValue}>${total.toFixed(2)}</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Tax (8%)</Text>
-          <Text style={styles.summaryValue}>${tax.toFixed(2)}</Text>
+          <Text style={styles.summaryLabel}>Total Items</Text>
+          <Text style={styles.summaryValue}>{totalItems}</Text>
         </View>
         <View style={[styles.summaryRow, styles.grandTotalRow]}>
           <Text style={styles.grandTotalLabel}>Total</Text>
-          <Text style={styles.grandTotalValue}>${grandTotal.toFixed(2)}</Text>
+          <Text style={styles.grandTotalValue}>£{total.toFixed(2)}</Text>
         </View>
 
         <TouchableOpacity
           style={[styles.checkoutButton, items.length === 0 && styles.checkoutDisabled]}
           disabled={items.length === 0 || isCheckingOut}
-          onPress={handleCheckout}
+          onPress={handleShareToWhatsApp}
         >
           {isCheckingOut ? (
             <ActivityIndicator color={colors.onPrimary} />
           ) : (
-            <Text style={styles.checkoutText}>Proceed to Checkout</Text>
+            <Text style={styles.checkoutText}>Share to WhatsApp</Text>
           )}
         </TouchableOpacity>
       </View>

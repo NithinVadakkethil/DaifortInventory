@@ -26,7 +26,7 @@ export const CartItem = ({ item }: CartItemProps) => {
         <Text style={styles.name} numberOfLines={2}>
           {product.name}
         </Text>
-        <Text style={styles.price}>${(product.price * quantity).toFixed(2)}</Text>
+        <Text style={styles.price}>£{(product.price * quantity).toFixed(2)}</Text>
         
         <View style={styles.actions}>
           <View style={styles.stepper}>

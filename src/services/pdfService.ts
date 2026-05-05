@@ -69,8 +69,8 @@ export const generateInvoiceAndShare = async (
               <tr>
                 <td>${item.product.name}</td>
                 <td>${item.quantity}</td>
-                <td>$${item.product.price.toFixed(2)}</td>
-                <td>$${(item.quantity * item.product.price).toFixed(2)}</td>
+                <td>£${item.product.price.toFixed(2)}</td>
+                <td>£${(item.quantity * item.product.price).toFixed(2)}</td>
               </tr>
             `
               )
@@ -81,15 +81,15 @@ export const generateInvoiceAndShare = async (
         <div class="totals">
           <div class="total-row">
             <span>Subtotal:</span>
-            <span>$${total.toFixed(2)}</span>
+            <span>£${total.toFixed(2)}</span>
           </div>
           <div class="total-row">
             <span>Tax (8%):</span>
-            <span>$${tax.toFixed(2)}</span>
+            <span>£${tax.toFixed(2)}</span>
           </div>
           <div class="total-row grand-total">
             <span>Total:</span>
-            <span>$${grandTotal.toFixed(2)}</span>
+            <span>£${grandTotal.toFixed(2)}</span>
           </div>
         </div>
 

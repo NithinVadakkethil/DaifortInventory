@@ -8,6 +8,8 @@ export interface CustomerType {
   email?: string;
   phone?: string;
   address?: string;
+  lastOrderDate?: string | null;
+  lastOrderTotal?: number | null;
 }
 
 interface CustomerState {

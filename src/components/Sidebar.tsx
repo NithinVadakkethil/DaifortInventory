@@ -10,7 +10,12 @@ const NAV_ITEMS = [
   { id: 'settings', label: 'Settings', icon: Settings, active: false },
 ];
 
-export const Sidebar = () => {
+interface SidebarProps {
+  activeTab: string;
+  onTabChange: (tabId: string) => void;
+}
+
+export const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -23,22 +28,24 @@ export const Sidebar = () => {
       <View style={styles.navContainer}>
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
+          const isActive = activeTab === item.id;
           return (
             <TouchableOpacity
               key={item.id}
               style={[
                 styles.navItem,
-                item.active && styles.navItemActive,
+                isActive && styles.navItemActive,
               ]}
+              onPress={() => onTabChange(item.id)}
             >
               <Icon
                 size={24}
-                color={item.active ? colors.primary : colors.onSurfaceVariant}
+                color={isActive ? colors.primary : colors.onSurfaceVariant}
               />
               <Text
                 style={[
                   styles.navLabel,
-                  item.active && styles.navLabelActive,
+                  isActive && styles.navLabelActive,
                 ]}
               >
                 {item.label}

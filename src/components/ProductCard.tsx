@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import { ShoppingCart } from 'lucide-react-native';
+import { ShoppingCart, Image as ImageIcon } from 'lucide-react-native';
 import { colors, spacing, typography, rounded } from '../theme';
 import { Product } from '../hooks/useProducts';
 
@@ -11,18 +11,40 @@ interface ProductCardProps {
 }
 
 export const ProductCard = React.memo(({ product, onAddToCart }: ProductCardProps) => {
-  const isOutOfStock = product.stock <= 0;
+  const [isLoadingImage, setIsLoadingImage] = useState(true);
+  const [hasImageError, setHasImageError] = useState(false);
 
   return (
     <View style={styles.card}>
-      <FastImage
-        style={styles.image}
-        source={{
-          uri: product.image,
-          priority: FastImage.priority.normal,
-        }}
-        resizeMode={FastImage.resizeMode.contain}
-      />
+      <View style={styles.imageContainer}>
+        {hasImageError ? (
+          <View style={[styles.image, styles.errorImage]}>
+            <ImageIcon color={colors.outline} size={40} />
+          </View>
+        ) : (
+          <>
+            <FastImage
+              style={styles.image}
+              source={{
+                uri: product.image,
+                priority: FastImage.priority.normal,
+              }}
+              resizeMode={FastImage.resizeMode.contain}
+              onLoadStart={() => setIsLoadingImage(true)}
+              onLoadEnd={() => setIsLoadingImage(false)}
+              onError={() => {
+                setIsLoadingImage(false);
+                setHasImageError(true);
+              }}
+            />
+            {isLoadingImage && (
+              <View style={styles.loaderContainer}>
+                <ActivityIndicator color={colors.primary} />
+              </View>
+            )}
+          </>
+        )}
+      </View>
       <View style={styles.details}>
         <View style={styles.categoryChip}>
           <Text style={styles.categoryText}>{product.category}</Text>
@@ -30,18 +52,14 @@ export const ProductCard = React.memo(({ product, onAddToCart }: ProductCardProp
         <Text style={styles.name} numberOfLines={2}>
           {product.name}
         </Text>
-        <Text style={styles.price}>${product.price.toFixed(2)}</Text>
+        <Text style={styles.price}>£{product.price.toFixed(2)}</Text>
         
         <View style={styles.footer}>
-          <Text style={[styles.stock, isOutOfStock && styles.outOfStock]}>
-            {isOutOfStock ? 'Out of Stock' : `${product.stock} in stock`}
-          </Text>
           <TouchableOpacity
-            style={[styles.addButton, isOutOfStock && styles.addButtonDisabled]}
-            disabled={isOutOfStock}
+            style={styles.addButton}
             onPress={() => onAddToCart(product)}
           >
-            <ShoppingCart size={20} color={isOutOfStock ? colors.outline : colors.onPrimary} />
+            <ShoppingCart size={20} color={colors.onPrimary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -59,10 +77,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.surfaceContainer,
   },
-  image: {
+  imageContainer: {
     height: 120,
     width: '100%',
     marginBottom: spacing.m,
+    position: 'relative',
+  },
+  image: {
+    height: 120,
+    width: '100%',
+  },
+  loaderContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceContainerLowest,
+  },
+  errorImage: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceContainerLow,
+    borderRadius: rounded.default,
   },
   details: {
     flex: 1,
@@ -93,16 +128,9 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     marginTop: 'auto',
-  },
-  stock: {
-    ...typography.labelSm,
-    color: colors.success,
-  },
-  outOfStock: {
-    color: colors.error,
   },
   addButton: {
     backgroundColor: colors.primary,
@@ -111,8 +139,5 @@ const styles = StyleSheet.create({
     borderRadius: rounded.full,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  addButtonDisabled: {
-    backgroundColor: colors.surfaceContainerHigh,
   },
 });
