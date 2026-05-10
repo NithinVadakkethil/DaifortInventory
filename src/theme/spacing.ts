@@ -7,7 +7,7 @@ export const spacing = {
   xxl: 48,
   gutter: 16,
   marginEdge: 24,
-  sidebarWidth: 280,
+  sidebarWidth: 220,
 };
 
 export const rounded = {

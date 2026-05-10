@@ -6,7 +6,7 @@ export const SplashScreen = ({ navigation }: any) => {
   useEffect(() => {
     // Simulate loading time for DB init
     const timer = setTimeout(() => {
-      navigation.replace('Login');
+      navigation.replace('Main');
     }, 2000);
     return () => clearTimeout(timer);
   }, [navigation]);

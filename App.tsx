@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { getDBConnection, createTables, deleteOldOrders } from './src/data/db';
 import { seedDatabase } from './src/data/seeder';
@@ -39,6 +40,7 @@ function App(): React.JSX.Element {
       <NavigationContainer>
         <AppNavigator />
       </NavigationContainer>
+      <Toast />
     </SafeAreaProvider>
   );
 }

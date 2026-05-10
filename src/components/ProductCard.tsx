@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import { ShoppingCart, Image as ImageIcon } from 'lucide-react-native';
-import { colors, spacing, typography, rounded } from '../theme';
+import { Plus, Image as ImageIcon } from 'lucide-react-native';
+import { colors, spacing, typography, rounded, shadows } from '../theme';
 import { Product } from '../hooks/useProducts';
 
 interface ProductCardProps {
@@ -19,7 +19,7 @@ export const ProductCard = React.memo(({ product, onAddToCart }: ProductCardProp
       <View style={styles.imageContainer}>
         {hasImageError ? (
           <View style={[styles.image, styles.errorImage]}>
-            <ImageIcon color={colors.outline} size={40} />
+            <ImageIcon color={colors.outline} size={32} />
           </View>
         ) : (
           <>
@@ -29,7 +29,7 @@ export const ProductCard = React.memo(({ product, onAddToCart }: ProductCardProp
                 uri: product.image,
                 priority: FastImage.priority.normal,
               }}
-              resizeMode={FastImage.resizeMode.contain}
+              resizeMode={FastImage.resizeMode.cover}
               onLoadStart={() => setIsLoadingImage(true)}
               onLoadEnd={() => setIsLoadingImage(false)}
               onError={() => {
@@ -39,7 +39,7 @@ export const ProductCard = React.memo(({ product, onAddToCart }: ProductCardProp
             />
             {isLoadingImage && (
               <View style={styles.loaderContainer}>
-                <ActivityIndicator color={colors.primary} />
+                <ActivityIndicator color={colors.primary} size="small" />
               </View>
             )}
           </>
@@ -52,14 +52,15 @@ export const ProductCard = React.memo(({ product, onAddToCart }: ProductCardProp
         <Text style={styles.name} numberOfLines={2}>
           {product.name}
         </Text>
-        <Text style={styles.price}>£{product.price.toFixed(2)}</Text>
         
         <View style={styles.footer}>
+          <Text style={styles.price}>£{product.price.toFixed(2)}</Text>
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => onAddToCart(product)}
+            activeOpacity={0.7}
           >
-            <ShoppingCart size={20} color={colors.onPrimary} />
+            <Plus size={18} color={colors.onPrimary} strokeWidth={3} />
           </TouchableOpacity>
         </View>
       </View>
@@ -71,73 +72,80 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: rounded.lg,
-    padding: spacing.m,
     flex: 1,
     margin: spacing.s,
     borderWidth: 1,
-    borderColor: colors.surfaceContainer,
+    borderColor: 'rgba(0,0,0,0.06)',
+    ...shadows.sm,
+    overflow: 'hidden', // clips the image nicely to the border radius
   },
   imageContainer: {
-    height: 120,
+    height: 140,
     width: '100%',
-    marginBottom: spacing.m,
+    backgroundColor: colors.surfaceContainer,
     position: 'relative',
   },
   image: {
-    height: 120,
+    height: '100%',
     width: '100%',
   },
   loaderContainer: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.surfaceContainerLowest,
+    backgroundColor: 'rgba(255,255,255,0.5)',
   },
   errorImage: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.surfaceContainerLow,
-    borderRadius: rounded.default,
+    backgroundColor: colors.surfaceContainer,
   },
   details: {
+    padding: spacing.m,
     flex: 1,
   },
   categoryChip: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.surfaceContainerLow,
+    backgroundColor: 'rgba(0, 91, 191, 0.08)',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: rounded.full,
+    borderRadius: rounded.sm,
     marginBottom: spacing.s,
   },
   categoryText: {
     ...typography.labelSm,
-    color: colors.onSurfaceVariant,
+    color: colors.primary,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontSize: 10,
   },
   name: {
     ...typography.bodyMd,
     fontWeight: '600',
     color: colors.onSurface,
-    marginBottom: spacing.xs,
-    height: 48, // Fix height for 2 lines
-  },
-  price: {
-    ...typography.headlineMd,
-    color: colors.primary,
     marginBottom: spacing.m,
+    height: 40,
+    lineHeight: 20,
   },
   footer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 'auto',
   },
+  price: {
+    ...typography.titleMd,
+    color: colors.onSurface,
+    fontWeight: '800',
+  },
   addButton: {
     backgroundColor: colors.primary,
-    width: 40,
-    height: 40,
+    width: 32,
+    height: 32,
     borderRadius: rounded.full,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.sm,
   },
 });

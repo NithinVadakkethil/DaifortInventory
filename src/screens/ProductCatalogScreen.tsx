@@ -4,7 +4,7 @@ import { Search } from 'lucide-react-native';
 import { ProductCard } from '../components/ProductCard';
 import { useProducts } from '../hooks/useProducts';
 import { useCartStore } from '../store/useCartStore';
-import { colors, spacing, rounded } from '../theme';
+import { colors, spacing, rounded, typography, shadows } from '../theme';
 import { AddProductModal } from '../components/AddProductModal';
 import { Plus } from 'lucide-react-native';
 
@@ -24,15 +24,17 @@ export const ProductCatalogScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <Search color={colors.outline} size={20} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search products by name or SKU..."
-          placeholderTextColor={colors.outline}
-          value={search}
-          onChangeText={setSearch}
-        />
+      <View style={styles.header}>
+        <View style={styles.searchContainer}>
+          <Search color={colors.outline} size={20} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search products by name or SKU..."
+            placeholderTextColor={colors.outline}
+            value={search}
+            onChangeText={setSearch}
+          />
+        </View>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => setAddModalVisible(true)}
@@ -69,33 +71,42 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.s,
+    marginBottom: spacing.l,
+    marginTop: spacing.m,
+  },
   searchContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    marginHorizontal: spacing.s,
-    marginBottom: spacing.m,
     paddingHorizontal: spacing.m,
-    borderRadius: rounded.default,
+    borderRadius: rounded.md,
     borderWidth: 1,
-    borderColor: colors.surfaceContainer,
+    borderColor: 'transparent',
+    ...shadows.sm,
   },
   searchIcon: {
     marginRight: spacing.s,
   },
   searchInput: {
     flex: 1,
-    height: 48,
+    height: 52,
     color: colors.onSurface,
+    ...typography.bodyMd,
   },
   addButton: {
     backgroundColor: colors.primary,
-    width: 36,
-    height: 36,
-    borderRadius: rounded.default,
+    width: 52,
+    height: 52,
+    borderRadius: rounded.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: spacing.s,
+    marginLeft: spacing.m,
+    ...shadows.sm,
   },
   loader: {
     flex: 1,
@@ -104,5 +115,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: spacing.xxl,
+    paddingHorizontal: spacing.xs,
   },
 });

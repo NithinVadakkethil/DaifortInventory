@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, TouchableWi
 import { X } from 'lucide-react-native';
 import { colors, spacing, typography, rounded } from '../theme';
 import { updateCustomer } from '../data/db';
+import Toast from 'react-native-toast-message';
 import { CustomerType } from '../store/useCustomerStore';
 
 interface EditCustomerModalProps {
@@ -29,7 +30,11 @@ export const EditCustomerModal = ({ visible, customer, onClose, onSuccess }: Edi
 
   const handleSubmit = async () => {
     if (!name) {
-      Alert.alert('Error', 'Please enter a name.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Please enter a name.',
+      });
       return;
     }
     
@@ -37,11 +42,20 @@ export const EditCustomerModal = ({ visible, customer, onClose, onSuccess }: Edi
 
     try {
       await updateCustomer(customer.id, name, email, phone, address);
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Customer updated successfully.',
+      });
       onSuccess();
       onClose();
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'Failed to update customer.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to update customer.',
+      });
     }
   };
 

@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useCustomers } from '../hooks/useCustomers';
-import { colors, spacing, typography, rounded } from '../theme';
+import { colors, spacing, typography, rounded, shadows } from '../theme';
 import { AddCustomerModal } from '../components/AddCustomerModal';
 import { EditCustomerModal } from '../components/EditCustomerModal';
 import { Edit2, Plus, Search, Trash2, User } from 'lucide-react-native';
 import { CustomerType } from '../store/useCustomerStore';
 import { deleteCustomer } from '../data/db';
+import Toast from 'react-native-toast-message';
 
 export const CustomersScreen = () => {
   const [search, setSearch] = useState('');
@@ -37,10 +38,19 @@ export const CustomersScreen = () => {
         onPress: async () => {
           try {
             await deleteCustomer(customer.id);
+            Toast.show({
+              type: 'success',
+              text1: 'Success',
+              text2: 'Customer deleted successfully.',
+            });
             refetch();
           } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to delete customer.');
+            Toast.show({
+              type: 'error',
+              text1: 'Error',
+              text2: 'Failed to delete customer.',
+            });
           }
         },
       },
@@ -149,12 +159,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.s,
-    marginBottom: spacing.m,
+    marginBottom: spacing.l,
+    marginTop: spacing.m,
   },
   title: {
     ...typography.headlineMd,
     color: colors.onSurface,
     marginLeft: spacing.s,
+    fontWeight: '700',
   },
   addButton: {
     flexDirection: 'row',
@@ -162,8 +174,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     paddingVertical: spacing.s,
     paddingHorizontal: spacing.m,
-    borderRadius: rounded.default,
+    borderRadius: rounded.md,
     marginRight: spacing.s,
+    ...shadows.sm,
   },
   addButtonText: {
     ...typography.labelMd,
@@ -180,19 +193,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     marginHorizontal: spacing.s,
-    marginBottom: spacing.m,
+    marginBottom: spacing.l,
     paddingHorizontal: spacing.m,
-    borderRadius: rounded.default,
+    borderRadius: rounded.md,
     borderWidth: 1,
-    borderColor: colors.surfaceContainer,
+    borderColor: 'transparent',
+    ...shadows.sm,
   },
   searchIcon: {
     marginRight: spacing.s,
   },
   searchInput: {
     flex: 1,
-    height: 48,
+    height: 52,
     color: colors.onSurface,
+    ...typography.bodyMd,
   },
   listContent: {
     paddingHorizontal: spacing.s,
@@ -202,20 +217,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    padding: spacing.m,
-    marginBottom: spacing.s,
-    borderRadius: rounded.default,
+    padding: spacing.l,
+    marginBottom: spacing.m,
+    borderRadius: rounded.md,
     borderWidth: 1,
-    borderColor: colors.surfaceContainer,
+    borderColor: 'transparent',
+    ...shadows.sm,
   },
   customerIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.primaryContainer,
+    width: 52,
+    height: 52,
+    borderRadius: rounded.full,
+    backgroundColor: 'rgba(0, 91, 191, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.m,
+    marginRight: spacing.l,
   },
   customerInfo: {
     flex: 1,
@@ -224,9 +240,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   iconButton: {
-    width: 34,
-    height: 34,
-    borderRadius: rounded.default,
+    width: 40,
+    height: 40,
+    borderRadius: rounded.full,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: spacing.xs,
@@ -235,16 +251,18 @@ const styles = StyleSheet.create({
   customerName: {
     ...typography.titleMd,
     color: colors.onSurface,
-    marginBottom: spacing.xs,
+    marginBottom: 4,
+    fontWeight: '600',
   },
   customerDetail: {
     ...typography.bodyMd,
     color: colors.onSurfaceVariant,
+    marginBottom: 2,
   },
   lastOrderText: {
     ...typography.labelSm,
-    color: colors.onSurfaceVariant,
-    marginTop: spacing.xs,
+    color: colors.outline,
+    marginTop: spacing.s,
   },
   emptyText: {
     ...typography.bodyMd,

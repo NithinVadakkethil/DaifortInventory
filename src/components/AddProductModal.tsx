@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, TouchableWi
 import { X } from 'lucide-react-native';
 import { colors, spacing, typography, rounded } from '../theme';
 import { insertProduct } from '../data/db';
+import Toast from 'react-native-toast-message';
 
 interface AddProductModalProps {
   visible: boolean;
@@ -18,18 +19,31 @@ export const AddProductModal = ({ visible, onClose, onSuccess }: AddProductModal
 
   const handleSubmit = async () => {
     if (!name || !price || !image) {
-      Alert.alert('Error', 'Please fill in Name, Price, and Image URL.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Please fill in Name, Price, and Image URL.',
+      });
       return;
     }
 
     const priceNum = parseFloat(price);
     if (isNaN(priceNum)) {
-      Alert.alert('Error', 'Price must be a valid number.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Price must be a valid number.',
+      });
       return;
     }
 
     try {
       await insertProduct(name, priceNum, category || 'Uncategorized', image, 100);
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Product added successfully.',
+      });
       onSuccess();
       onClose();
       // Reset form
@@ -39,7 +53,11 @@ export const AddProductModal = ({ visible, onClose, onSuccess }: AddProductModal
       setImage('');
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'Failed to add product.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to add product.',
+      });
     }
   };
 

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, TouchableWi
 import { X } from 'lucide-react-native';
 import { colors, spacing, typography, rounded } from '../theme';
 import { insertCustomer } from '../data/db';
+import Toast from 'react-native-toast-message';
 
 interface AddCustomerModalProps {
   visible: boolean;
@@ -18,12 +19,21 @@ export const AddCustomerModal = ({ visible, onClose, onSuccess }: AddCustomerMod
 
   const handleSubmit = async () => {
     if (!name) {
-      Alert.alert('Error', 'Please enter a name.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Please enter a name.',
+      });
       return;
     }
 
     try {
       await insertCustomer(name, email, phone, address);
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Customer added successfully.',
+      });
       onSuccess();
       onClose();
       // Reset form
@@ -33,7 +43,11 @@ export const AddCustomerModal = ({ visible, onClose, onSuccess }: AddCustomerMod
       setAddress('');
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'Failed to add customer.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to add customer.',
+      });
     }
   };
 

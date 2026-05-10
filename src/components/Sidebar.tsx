@@ -1,13 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Store, Users, FileText, Settings, LogOut } from 'lucide-react-native';
-import { colors, spacing, typography, rounded } from '../theme';
+import { Store, Users, FileText } from 'lucide-react-native';
+import { colors, spacing, typography, rounded, shadows } from '../theme';
 
 const NAV_ITEMS = [
   { id: 'catalog', label: 'Catalog', icon: Store, active: true },
   { id: 'customers', label: 'Customers', icon: Users, active: false },
   { id: 'orders', label: 'Orders', icon: FileText, active: false },
-  { id: 'settings', label: 'Settings', icon: Settings, active: false },
 ];
 
 interface SidebarProps {
@@ -39,7 +38,7 @@ export const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
               onPress={() => onTabChange(item.id)}
             >
               <Icon
-                size={24}
+                size={22}
                 color={isActive ? colors.primary : colors.onSurfaceVariant}
               />
               <Text
@@ -54,13 +53,6 @@ export const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
           );
         })}
       </View>
-
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.navItem}>
-          <LogOut size={24} color={colors.onSurfaceVariant} />
-          <Text style={styles.navLabel}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
@@ -70,25 +62,27 @@ const styles = StyleSheet.create({
     width: spacing.sidebarWidth,
     backgroundColor: colors.surface,
     borderRightWidth: 1,
-    borderColor: colors.surfaceContainer,
-    paddingVertical: spacing.l,
-    paddingHorizontal: spacing.m,
-    justifyContent: 'space-between',
+    borderColor: 'rgba(0,0,0,0.05)',
+    ...shadows.md,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.l,
+    zIndex: 10,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.xxl,
-    paddingHorizontal: spacing.s,
+    paddingHorizontal: spacing.xs,
   },
   logoContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: rounded.default,
+    width: 44,
+    height: 44,
+    borderRadius: rounded.lg,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.s,
+    ...shadows.sm,
   },
   logoText: {
     ...typography.headlineMd,
@@ -104,27 +98,20 @@ const styles = StyleSheet.create({
   navItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: spacing.m,
-    borderRadius: rounded.default,
-    marginBottom: spacing.xs,
+    borderRadius: rounded.md,
+    marginBottom: spacing.s,
   },
   navItemActive: {
-    backgroundColor: colors.primaryContainer, // light blue background
+    backgroundColor: 'rgba(0, 91, 191, 0.08)', // very light primary
   },
   navLabel: {
     ...typography.bodyMd,
-    fontWeight: '500',
     color: colors.onSurfaceVariant,
     marginLeft: spacing.m,
   },
   navLabelActive: {
     color: colors.primary,
-    fontWeight: '600',
-  },
-  footer: {
-    borderTopWidth: 1,
-    borderColor: colors.surfaceContainer,
-    paddingTop: spacing.m,
   },
 });

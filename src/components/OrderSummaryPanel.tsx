@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { User, ShoppingBag } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
 import { useCartStore } from '../store/useCartStore';
 import { useCustomerStore } from '../store/useCustomerStore';
 import { CartItem } from './CartItem';
@@ -23,9 +24,9 @@ export const OrderSummaryPanel = () => {
 
   const handleShareToWhatsApp = async () => {
     setIsCheckingOut(true);
-    const success = await shareOrderToWhatsApp(items, selectedCustomer, total);
+    const shareResult = await shareOrderToWhatsApp(items, selectedCustomer, total);
     
-    if (success) {
+    if (shareResult.success) {
       // Save order to database
       try {
         const orderItems = items.map(item => ({
@@ -42,16 +43,27 @@ export const OrderSummaryPanel = () => {
           orderItems
         );
         
-        Alert.alert('Shared', 'Order details shared to WhatsApp.', [
-          { text: 'OK', onPress: () => clearCart() }
-        ]);
+        Toast.show({
+          type: 'success',
+          text1: 'Shared',
+          text2: 'Order details shared to WhatsApp.',
+        });
+        clearCart();
       } catch (error) {
         console.error('Failed to save order to database', error);
-        Alert.alert('Warning', 'Shared to WhatsApp but failed to save order locally.');
+        Toast.show({
+          type: 'success',
+          text1: 'Warning',
+          text2: 'Shared to WhatsApp but failed to save order locally.',
+        });
         clearCart();
       }
     } else {
-      Alert.alert('Error', 'Could not share order to WhatsApp.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Could not share order to WhatsApp.',
+      });
     }
     
     setIsCheckingOut(false);
