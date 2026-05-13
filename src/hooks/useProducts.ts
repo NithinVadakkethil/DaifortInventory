@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getDBConnection } from '../data/db';
+import { getDBConnection, getProductImages } from '../data/db';
 
 export interface Product {
   id: number;
@@ -8,6 +8,7 @@ export interface Product {
   category: string;
   image: string;
   stock: number;
+  images: string[]; // All gallery images (includes primary)
 }
 
 export const useProducts = (searchQuery: string = '', category: string = '') => {
@@ -34,7 +35,14 @@ export const useProducts = (searchQuery: string = '', category: string = '') => 
       const [results] = await db.executeSql(query, params);
       const items: Product[] = [];
       for (let i = 0; i < results.rows.length; i++) {
-        items.push(results.rows.item(i));
+        const row = results.rows.item(i);
+        // Fetch gallery images for each product
+        const galleryImages = await getProductImages(db, row.id);
+        items.push({
+          ...row,
+          // If no gallery images stored yet, fall back to the primary image
+          images: galleryImages.length > 0 ? galleryImages : (row.image ? [row.image] : []),
+        });
       }
       setProducts(items);
     } catch (error) {

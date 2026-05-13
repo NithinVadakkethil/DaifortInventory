@@ -60,11 +60,23 @@ export const createTables = async (db: SQLite.SQLiteDatabase) => {
     );
   `;
 
+  // Gallery images table — safe to run on existing DBs
+  const queryProductImages = `
+    CREATE TABLE IF NOT EXISTS product_images (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      productId INTEGER NOT NULL,
+      url TEXT NOT NULL,
+      sortOrder INTEGER NOT NULL DEFAULT 0,
+      FOREIGN KEY (productId) REFERENCES products (id)
+    );
+  `;
+
   try {
     await db.executeSql(queryProducts);
     await db.executeSql(queryCustomers);
     await db.executeSql(queryOrders);
     await db.executeSql(queryOrderItems);
+    await db.executeSql(queryProductImages);
   } catch (error) {
     console.error('Error creating tables', error);
   }
@@ -75,11 +87,53 @@ export const insertProduct = async (
   price: number,
   category: string,
   image: string,
-  stock: number = 0
+  stock: number = 0,
+  additionalImages: string[] = []
 ) => {
   const db = await getDBConnection();
   const query = 'INSERT INTO products (name, price, category, image, stock) VALUES (?, ?, ?, ?, ?)';
-  await db.executeSql(query, [name, price, category, image, stock]);
+  const [result] = await db.executeSql(query, [name, price, category, image, stock]);
+  const productId = result.insertId;
+
+  // Insert all gallery images (first image is the primary, rest are extras)
+  const allImages = [image, ...additionalImages.filter(url => url.trim() !== '' && url !== image)];
+  await insertProductImages(db, productId, allImages);
+
+  return productId;
+};
+
+export const insertProductImages = async (
+  db: SQLite.SQLiteDatabase,
+  productId: number,
+  urls: string[]
+) => {
+  // Clear existing gallery images for this product first
+  await db.executeSql('DELETE FROM product_images WHERE productId = ?', [productId]);
+
+  for (let i = 0; i < urls.length; i++) {
+    const url = urls[i].trim();
+    if (url) {
+      await db.executeSql(
+        'INSERT INTO product_images (productId, url, sortOrder) VALUES (?, ?, ?)',
+        [productId, url, i]
+      );
+    }
+  }
+};
+
+export const getProductImages = async (
+  db: SQLite.SQLiteDatabase,
+  productId: number
+): Promise<string[]> => {
+  const [results] = await db.executeSql(
+    'SELECT url FROM product_images WHERE productId = ? ORDER BY sortOrder ASC',
+    [productId]
+  );
+  const urls: string[] = [];
+  for (let i = 0; i < results.rows.length; i++) {
+    urls.push(results.rows.item(i).url);
+  }
+  return urls;
 };
 
 export const insertCustomer = async (
