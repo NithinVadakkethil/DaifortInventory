@@ -5,6 +5,7 @@ import Toast from 'react-native-toast-message';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { getDBConnection, createTables, deleteOldOrders } from './src/data/db';
 import { seedDatabase } from './src/data/seeder';
+import Orientation from 'react-native-orientation-locker';
 
 function App(): React.JSX.Element {
   useEffect(() => {

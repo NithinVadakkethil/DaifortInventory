@@ -74,7 +74,7 @@ export const CustomersScreen = () => {
       return 'Last order: No orders yet';
     }
     const date = new Date(customer.lastOrderDate).toLocaleString();
-    const total = typeof customer.lastOrderTotal === 'number' ? ` - $${customer.lastOrderTotal.toFixed(2)}` : '';
+    const total = typeof customer.lastOrderTotal === 'number' ? ` - £${customer.lastOrderTotal.toFixed(2)}` : '';
     return `Last order: ${date}${total}`;
   };
 
@@ -161,6 +161,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.s,
     marginBottom: spacing.l,
     marginTop: spacing.m,
+    paddingLeft: 320,
   },
   title: {
     ...typography.headlineMd,

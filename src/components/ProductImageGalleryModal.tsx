@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,19 +6,18 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
   ActivityIndicator,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  useWindowDimensions,
+  StatusBar,
+  TouchableWithoutFeedback,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FastImage from 'react-native-fast-image';
-import { X, Image as ImageIcon, ShoppingCart } from 'lucide-react-native';
-import { colors, spacing, typography, rounded, shadows } from '../theme';
+import { X, Image as ImageIcon, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { colors, spacing, typography, rounded } from '../theme';
 import { Product } from '../hooks/useProducts';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const GALLERY_WIDTH = 680;
-const IMAGE_HEIGHT = 420;
 
 interface ProductImageGalleryModalProps {
   product: Product | null;
@@ -27,35 +26,58 @@ interface ProductImageGalleryModalProps {
   onAddToCart: (product: Product) => void;
 }
 
-const GalleryImage = ({ uri }: { uri: string }) => {
+const GalleryImage = ({
+  uri,
+  width,
+  height,
+  onTapImage,
+}: {
+  uri: string;
+  width: number;
+  height: number;
+  onTapImage: () => void;
+}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   return (
-    <View style={styles.galleryImageWrapper}>
-      {error ? (
-        <View style={styles.errorImage}>
-          <ImageIcon size={48} color={colors.outline} />
-          <Text style={styles.errorText}>Image unavailable</Text>
-        </View>
-      ) : (
-        <>
-          <FastImage
-            style={styles.galleryImage}
-            source={{ uri, priority: FastImage.priority.high }}
-            resizeMode={FastImage.resizeMode.contain}
-            onLoadStart={() => setLoading(true)}
-            onLoadEnd={() => setLoading(false)}
-            onError={() => { setLoading(false); setError(true); }}
-          />
-          {loading && (
-            <View style={styles.imageLoader}>
-              <ActivityIndicator color={colors.primary} size="large" />
+    <TouchableWithoutFeedback onPress={onTapImage}>
+      <View style={[styles.galleryImageWrapper, { width, height }]}>
+        {error ? (
+          <View style={styles.errorImage}>
+            <ImageIcon size={48} color={colors.outline} />
+            <Text style={styles.errorText}>Image unavailable</Text>
+          </View>
+        ) : (
+          <ScrollView
+            maximumZoomScale={4}
+            minimumZoomScale={1}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[styles.zoomScrollContent, { width, height }]}
+          >
+            <View style={{ width, height }}>
+              <FastImage
+                style={{ width, height }}
+                source={{ uri, priority: FastImage.priority.high }}
+                resizeMode={FastImage.resizeMode.contain}
+                onLoadStart={() => setLoading(true)}
+                onLoadEnd={() => setLoading(false)}
+                onError={() => {
+                  setLoading(false);
+                  setError(true);
+                }}
+              />
             </View>
-          )}
-        </>
-      )}
-    </View>
+          </ScrollView>
+        )}
+        {loading && !error && (
+          <View style={styles.imageLoader}>
+            <ActivityIndicator color="#ffffff" size="large" />
+          </View>
+        )}
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -66,7 +88,19 @@ export const ProductImageGalleryModal = ({
   onAddToCart,
 }: ProductImageGalleryModalProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [showControls, setShowControls] = useState(true);
   const scrollRef = useRef<ScrollView>(null);
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+
+  // Reset active page and show controls when product changes or modal opens
+  useEffect(() => {
+    if (visible) {
+      setActiveIndex(0);
+      setShowControls(true);
+      scrollRef.current?.scrollTo({ x: 0, y: 0, animated: false });
+    }
+  }, [product?.id, visible]);
 
   if (!product) return null;
 
@@ -76,13 +110,31 @@ export const ProductImageGalleryModal = ({
 
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offset = e.nativeEvent.contentOffset.x;
-    const index = Math.round(offset / GALLERY_WIDTH);
-    setActiveIndex(index);
+    const index = Math.round(offset / windowWidth);
+    if (index !== activeIndex && index >= 0 && index < images.length) {
+      setActiveIndex(index);
+    }
   };
 
   const handleDotPress = (index: number) => {
     setActiveIndex(index);
-    scrollRef.current?.scrollTo({ x: index * GALLERY_WIDTH, animated: true });
+    scrollRef.current?.scrollTo({ x: index * windowWidth, animated: true });
+  };
+
+  const handleNext = () => {
+    if (activeIndex < images.length - 1) {
+      const nextIdx = activeIndex + 1;
+      setActiveIndex(nextIdx);
+      scrollRef.current?.scrollTo({ x: nextIdx * windowWidth, animated: true });
+    }
+  };
+
+  const handlePrev = () => {
+    if (activeIndex > 0) {
+      const prevIdx = activeIndex - 1;
+      setActiveIndex(prevIdx);
+      scrollRef.current?.scrollTo({ x: prevIdx * windowWidth, animated: true });
+    }
   };
 
   const handleAddToCart = () => {
@@ -90,78 +142,130 @@ export const ProductImageGalleryModal = ({
     onClose();
   };
 
+  const toggleControls = () => {
+    setShowControls(prev => !prev);
+  };
+
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      <StatusBar barStyle="light-content" backgroundColor="#09090b" />
       <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          {/* Header */}
-          <View style={styles.header}>
+        {/* Fullscreen Swipable Image List */}
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={handleScroll}
+          decelerationRate="fast"
+          style={styles.imageScroll}
+          contentContainerStyle={{ width: windowWidth * images.length, height: windowHeight }}
+        >
+          {images.map((uri, index) => (
+            <GalleryImage
+              key={`${uri}-${index}`}
+              uri={uri}
+              width={windowWidth}
+              height={windowHeight}
+              onTapImage={toggleControls}
+            />
+          ))}
+        </ScrollView>
+
+        {/* Floating Header Bar */}
+        {showControls && (
+          <View style={[styles.headerPanel, { paddingTop: Math.max(insets.top, spacing.m) }]}>
             <View style={styles.headerLeft}>
-              <View style={styles.categoryChip}>
+              <View style={styles.categoryBadge}>
                 <Text style={styles.categoryText}>{product.category}</Text>
               </View>
-              <Text style={styles.productName} numberOfLines={2}>
+              <Text style={styles.productName} numberOfLines={1}>
                 {product.name}
               </Text>
             </View>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <X size={22} color={colors.onSurfaceVariant} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Image Count Badge */}
-          {images.length > 1 && (
-            <View style={styles.imageCountBadge}>
-              <Text style={styles.imageCountText}>
-                {activeIndex + 1} / {images.length}
-              </Text>
+            
+            <View style={styles.headerRight}>
+              {images.length > 1 && (
+                <Text style={styles.counterText}>
+                  {activeIndex + 1} of {images.length}
+                </Text>
+              )}
+              <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.8}>
+                <X size={22} color="#ffffff" />
+              </TouchableOpacity>
             </View>
-          )}
-
-          {/* Scrollable Images */}
-          <View style={styles.imageContainer}>
-            <ScrollView
-              ref={scrollRef}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onMomentumScrollEnd={handleScroll}
-              decelerationRate="fast"
-              snapToInterval={GALLERY_WIDTH}
-              snapToAlignment="center"
-              style={styles.imageScroll}
-            >
-              {images.map((uri, index) => (
-                <GalleryImage key={`${uri}-${index}`} uri={uri} />
-              ))}
-            </ScrollView>
           </View>
+        )}
 
-          {/* Dot Indicators */}
-          {images.length > 1 && (
-            <View style={styles.dotsContainer}>
-              {images.map((_, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[styles.dot, activeIndex === index && styles.dotActive]}
-                  onPress={() => handleDotPress(index)}
-                />
-              ))}
-            </View>
-          )}
+        {/* Floating Side Arrow Controls */}
+        {showControls && images.length > 1 && activeIndex > 0 && (
+          <TouchableOpacity style={styles.prevArrow} onPress={handlePrev} activeOpacity={0.7}>
+            <ChevronLeft size={28} color="#ffffff" />
+          </TouchableOpacity>
+        )}
+        {showControls && images.length > 1 && activeIndex < images.length - 1 && (
+          <TouchableOpacity style={styles.nextArrow} onPress={handleNext} activeOpacity={0.7}>
+            <ChevronRight size={28} color="#ffffff" />
+          </TouchableOpacity>
+        )}
 
-          {/* Product Details Footer */}
-          <View style={styles.footer}>
-            <View style={styles.priceSection}>
-              <Text style={styles.priceLabel}>Unit Price</Text>
-              <Text style={styles.price}>£{product.price.toFixed(2)}</Text>
+        {/* Floating Bottom Control Panel */}
+        {showControls && (
+          <View style={[styles.bottomPanel, { paddingBottom: Math.max(insets.bottom, spacing.m) }]}>
+            {images.length > 1 && (
+              <View style={styles.thumbnailSection}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.thumbnailsContent}
+                >
+                  {images.map((uri, index) => {
+                    const isActive = activeIndex === index;
+                    return (
+                      <TouchableOpacity
+                        key={`${uri}-${index}`}
+                        activeOpacity={0.8}
+                        onPress={() => handleDotPress(index)}
+                        style={[
+                          styles.thumbnailWrapper,
+                          isActive && styles.thumbnailActive,
+                        ]}
+                      >
+                        <FastImage
+                          source={{ uri }}
+                          style={styles.thumbnail}
+                          resizeMode={FastImage.resizeMode.cover}
+                        />
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
+
+            <View style={styles.actionRow}>
+              <View style={styles.priceContainer}>
+                <Text style={styles.priceLabel}>Unit Price</Text>
+                <Text style={styles.priceText}>£{product.price.toFixed(2)}</Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.addToCartBtn}
+                onPress={handleAddToCart}
+                activeOpacity={0.8}
+              >
+                <ShoppingCart size={20} color={colors.onPrimary} />
+                <Text style={styles.addToCartBtnText}>Add to Order</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
-              <ShoppingCart size={18} color={colors.onPrimary} />
-              <Text style={styles.addToCartText}>Add to Cart</Text>
-            </TouchableOpacity>
           </View>
-        </View>
+        )}
       </View>
     </Modal>
   );
@@ -170,103 +274,25 @@ export const ProductImageGalleryModal = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    width: GALLERY_WIDTH,
-    backgroundColor: colors.surface,
-    borderRadius: rounded.xl,
-    overflow: 'hidden',
-    ...shadows.lg ?? {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 16 },
-      shadowOpacity: 0.2,
-      shadowRadius: 32,
-      elevation: 12,
-    },
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    padding: spacing.l,
-    paddingBottom: spacing.m,
-  },
-  headerLeft: {
-    flex: 1,
-    marginRight: spacing.m,
-  },
-  categoryChip: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(0, 91, 191, 0.1)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: rounded.sm,
-    marginBottom: spacing.xs,
-  },
-  categoryText: {
-    ...typography.labelSm,
-    color: colors.primary,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    fontSize: 10,
-  },
-  productName: {
-    ...typography.headlineMd,
-    color: colors.onSurface,
-    lineHeight: 26,
-  },
-  closeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: rounded.full,
-    backgroundColor: colors.surfaceContainerHigh,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 2,
-  },
-  imageCountBadge: {
-    position: 'absolute',
-    top: spacing.l,
-    right: spacing.l + 36 + spacing.m,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: spacing.s,
-    paddingVertical: 3,
-    borderRadius: rounded.full,
-    zIndex: 10,
-  },
-  imageCountText: {
-    ...typography.labelSm,
-    color: '#fff',
-    fontSize: 11,
-  },
-  imageContainer: {
-    width: GALLERY_WIDTH,
-    height: IMAGE_HEIGHT,
-    backgroundColor: colors.surfaceContainer,
+    backgroundColor: '#09090b',
   },
   imageScroll: {
     flex: 1,
   },
   galleryImageWrapper: {
-    width: GALLERY_WIDTH,
-    height: IMAGE_HEIGHT,
-    backgroundColor: colors.surfaceContainer,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#09090b',
   },
-  galleryImage: {
-    width: GALLERY_WIDTH,
-    height: IMAGE_HEIGHT,
+  zoomScrollContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   imageLoader: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.4)',
+    backgroundColor: 'rgba(9, 9, 11, 0.4)',
   },
   errorImage: {
     justifyContent: 'center',
@@ -277,58 +303,157 @@ const styles = StyleSheet.create({
     ...typography.bodyMd,
     color: colors.outline,
   },
-  dotsContainer: {
+  headerPanel: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(10, 10, 12, 0.65)',
+    borderBottomWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.m,
+  },
+  headerLeft: {
+    flex: 1,
+    marginRight: spacing.m,
+  },
+  categoryBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(0, 91, 191, 0.25)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: rounded.sm,
+    marginBottom: spacing.xs,
+  },
+  categoryText: {
+    ...typography.labelSm,
+    color: '#60a5fa',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    fontSize: 10,
+  },
+  productName: {
+    ...typography.headlineLg,
+    color: '#ffffff',
+    fontWeight: '700',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.l,
+  },
+  counterText: {
+    ...typography.bodyMd,
+    color: '#a1a1aa',
+    fontWeight: '500',
+  },
+  closeBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: spacing.m,
-    gap: 6,
-    backgroundColor: colors.surface,
   },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: colors.surfaceContainerHigh,
-  },
-  dotActive: {
-    width: 20,
-    backgroundColor: colors.primary,
-  },
-  footer: {
-    flexDirection: 'row',
+  prevArrow: {
+    position: 'absolute',
+    left: spacing.l,
+    top: '50%',
+    marginTop: -28,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(10, 10, 12, 0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    justifyContent: 'center',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.l,
-    paddingVertical: spacing.m,
-    borderTopWidth: 1,
-    borderTopColor: colors.surfaceContainerHigh,
-    backgroundColor: colors.surface,
+    zIndex: 100,
   },
-  priceSection: {
+  nextArrow: {
+    position: 'absolute',
+    right: spacing.l,
+    top: '50%',
+    marginTop: -28,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(10, 10, 12, 0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  bottomPanel: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(10, 10, 12, 0.88)',
+    borderTopWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.m,
+  },
+  thumbnailSection: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.m,
+  },
+  thumbnailsContent: {
+    gap: spacing.s,
+  },
+  thumbnailWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: rounded.default,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    overflow: 'hidden',
+    opacity: 0.5,
+  },
+  thumbnailActive: {
+    borderColor: '#ffffff',
+    opacity: 1,
+  },
+  thumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.s,
+  },
+  priceContainer: {
     flexDirection: 'column',
   },
   priceLabel: {
     ...typography.labelSm,
-    color: colors.outline,
+    color: '#a1a1aa',
     marginBottom: 2,
   },
-  price: {
-    ...typography.headlineMd,
-    color: colors.onSurface,
+  priceText: {
+    ...typography.headlineLg,
+    color: '#ffffff',
     fontWeight: '800',
   },
-  addToCartButton: {
+  addToCartBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.s,
     backgroundColor: colors.primary,
-    paddingHorizontal: spacing.l,
+    paddingHorizontal: spacing.xl,
     paddingVertical: spacing.m,
-    borderRadius: rounded.default,
-    ...shadows.sm,
+    borderRadius: rounded.full,
   },
-  addToCartText: {
+  addToCartBtnText: {
     ...typography.labelMd,
     color: colors.onPrimary,
     fontWeight: '700',

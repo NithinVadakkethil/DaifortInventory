@@ -23,7 +23,7 @@ export const OrdersScreen = () => {
             <View style={styles.orderCard}>
               <View style={styles.orderHeader}>
                 <Text style={styles.orderId}>Order #{item.id}</Text>
-                <Text style={styles.orderTotal}>${item.total.toFixed(2)}</Text>
+                <Text style={styles.orderTotal}>£{item.total.toFixed(2)}</Text>
               </View>
               <Text style={styles.orderMeta}>
                 Customer: {item.customerName ? item.customerName : 'Walk-in Customer'}
@@ -52,7 +52,8 @@ const styles = StyleSheet.create({
     ...typography.headlineMd,
     color: colors.onSurface,
     marginBottom: spacing.m,
-    marginLeft: spacing.s,
+    marginLeft: 320, // Keep space for absolute top-left horizontal navbar
+    fontWeight: '700',
   },
   loader: {
     flex: 1,
