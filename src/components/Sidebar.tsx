@@ -4,9 +4,9 @@ import { Store, Users, FileText } from 'lucide-react-native';
 import { colors, spacing, typography, rounded, shadows } from '../theme';
 
 const NAV_ITEMS = [
-  { id: 'catalog', label: 'Catalog', icon: Store, active: true },
-  { id: 'customers', label: 'Customers', icon: Users, active: false },
-  { id: 'orders', label: 'Orders', icon: FileText, active: false },
+  { id: 'catalog', label: 'Catalog', icon: Store },
+  { id: 'customers', label: 'Customers', icon: Users },
+  { id: 'orders', label: 'Orders', icon: FileText },
 ];
 
 interface SidebarProps {
@@ -17,99 +17,80 @@ interface SidebarProps {
 export const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>D</Text>
-        </View>
-        <Text style={styles.brandName}>Daifort</Text>
-      </View>
-
-      <View style={styles.navContainer}>
-        {NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <TouchableOpacity
-              key={item.id}
+      {NAV_ITEMS.map((item) => {
+        const Icon = item.icon;
+        const isActive = activeTab === item.id;
+        return (
+          <TouchableOpacity
+            key={item.id}
+            style={[
+              styles.navItem,
+              isActive && styles.navItemActive,
+            ]}
+            onPress={() => onTabChange(item.id)}
+            activeOpacity={0.7}
+          >
+            <Icon
+              size={18}
+              color={isActive ? colors.primary : colors.onSurfaceVariant}
+              strokeWidth={isActive ? 2.5 : 2}
+            />
+            <Text
               style={[
-                styles.navItem,
-                isActive && styles.navItemActive,
+                styles.navLabel,
+                isActive && styles.navLabelActive,
               ]}
-              onPress={() => onTabChange(item.id)}
             >
-              <Icon
-                size={22}
-                color={isActive ? colors.primary : colors.onSurfaceVariant}
-              />
-              <Text
-                style={[
-                  styles.navLabel,
-                  isActive && styles.navLabelActive,
-                ]}
-              >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+              {item.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: spacing.sidebarWidth,
-    backgroundColor: colors.surface,
-    borderRightWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-    ...shadows.md,
-    paddingVertical: spacing.xl,
-    paddingHorizontal: spacing.l,
-    zIndex: 10,
-  },
-  header: {
+    position: 'absolute',
+    left: 20,
+    top: 32,
+    width: 300,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255, 255, 255, 0.75)', // Elegant transparent glassmorphism base
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.45)', // Glossy glass outline border
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.xxl,
-    paddingHorizontal: spacing.xs,
-  },
-  logoContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: rounded.lg,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.s,
-    ...shadows.sm,
-  },
-  logoText: {
-    ...typography.headlineMd,
-    color: colors.onPrimary,
-  },
-  brandName: {
-    ...typography.headlineMd,
-    color: colors.onSurface,
-  },
-  navContainer: {
-    flex: 1,
+    justifyContent: 'space-around',
+    paddingHorizontal: spacing.s,
+    zIndex: 1000,
+
+    // Ambient glassmorphic shadows for premium depth layer
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 8,
   },
   navItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: spacing.m,
-    borderRadius: rounded.md,
-    marginBottom: spacing.s,
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 18,
   },
   navItemActive: {
-    backgroundColor: 'rgba(0, 91, 191, 0.08)', // very light primary
+    backgroundColor: 'rgba(0, 91, 191, 0.08)', // Soft primary tint on active item
   },
   navLabel: {
-    ...typography.bodyMd,
+    fontSize: 11,
+    fontWeight: '700',
     color: colors.onSurfaceVariant,
-    marginLeft: spacing.m,
+    marginLeft: 6,
+    letterSpacing: 0.1,
   },
   navLabelActive: {
     color: colors.primary,

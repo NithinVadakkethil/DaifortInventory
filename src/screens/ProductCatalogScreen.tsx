@@ -8,7 +8,7 @@ import { colors, spacing, rounded, typography, shadows } from '../theme';
 import { AddProductModal } from '../components/AddProductModal';
 import { ProductImageGalleryModal } from '../components/ProductImageGalleryModal';
 
-export const ProductCatalogScreen = () => {
+export const ProductCatalogScreen = ({ isCartOpen = true }: { isCartOpen?: boolean }) => {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const { products, loading, refetch } = useProducts(debouncedSearch);
@@ -22,6 +22,8 @@ export const ProductCatalogScreen = () => {
     }, 500);
     return () => clearTimeout(handler);
   }, [search]);
+
+  const numColumns = isCartOpen ? 3 : 4;
 
   return (
     <View style={styles.container}>
@@ -56,7 +58,6 @@ export const ProductCatalogScreen = () => {
         onClose={() => setSelectedProduct(null)}
         onAddToCart={(product) => {
           addItem(product);
-          setSelectedProduct(null);
         }}
       />
 
@@ -64,9 +65,10 @@ export const ProductCatalogScreen = () => {
         <ActivityIndicator style={styles.loader} size="large" color={colors.primary} />
       ) : (
         <FlatList
+          key={numColumns} // Force component to recreate when grid column count changes
           data={products}
           keyExtractor={(item) => item.id.toString()}
-          numColumns={3}
+          numColumns={numColumns}
           renderItem={({ item }) => (
             <ProductCard
               product={item}
@@ -92,6 +94,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.s,
     marginBottom: spacing.l,
     marginTop: spacing.m,
+    paddingLeft: 320, // Keep space for absolute top-left horizontal navbar
   },
   searchContainer: {
     flex: 1,

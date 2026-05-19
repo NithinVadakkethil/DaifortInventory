@@ -1,3 +1,4 @@
+import { Linking } from 'react-native';
 import Share from 'react-native-share';
 import { CartItemType } from '../store/useCartStore';
 import { CustomerType } from '../store/useCustomerStore';
@@ -48,14 +49,26 @@ export const shareOrderToWhatsApp = async (
   const message = buildOrderMessage(items, customer, total);
 
   try {
-    await Share.shareSingle({
-      social: Share.Social.WHATSAPP,
-      message,
-      failOnCancel: false,
-    });
-    return true;
+    // Check if the WhatsApp app is installed via custom URL scheme
+    const canOpen = await Linking.canOpenURL('whatsapp://');
+    
+    if (canOpen) {
+      // Opening without a phone number prompts the user to select a chat or group inside WhatsApp
+      const appUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
+      await Linking.openURL(appUrl);
+      return true;
+    } else {
+      // Fallback to the native Share sheet (allows sharing to WhatsApp if available/via extensions, or copying)
+      const shareOptions = {
+        message: message,
+        failOnCancel: false,
+      };
+      await Share.open(shareOptions);
+      return true;
+    }
   } catch (error) {
-    console.error('Failed to share order to WhatsApp:', error);
+    console.error('Failed to share order:', error);
     return false;
   }
 };
+

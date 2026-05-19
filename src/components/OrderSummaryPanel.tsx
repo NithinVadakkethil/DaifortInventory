@@ -26,7 +26,7 @@ export const OrderSummaryPanel = () => {
     setIsCheckingOut(true);
     const shareResult = await shareOrderToWhatsApp(items, selectedCustomer, total);
     
-    if (shareResult.success) {
+    if (shareResult) {
       // Save order to database
       try {
         const orderItems = items.map(item => ({

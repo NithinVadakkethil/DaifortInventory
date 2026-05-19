@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { deleteOldOrders, getDBConnection } from '../data/db';
+import { getDBConnection } from '../data/db';
 import { CustomerType } from '../store/useCustomerStore';
 
 export const useCustomers = (searchTerm: string = '') => {
@@ -9,7 +9,6 @@ export const useCustomers = (searchTerm: string = '') => {
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
     try {
-      await deleteOldOrders();
       const db = await getDBConnection();
       const term = searchTerm.trim();
       const baseQuery = `

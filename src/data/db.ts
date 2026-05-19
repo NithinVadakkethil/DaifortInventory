@@ -174,7 +174,6 @@ export const insertOrder = async (
   items: { productId: number; quantity: number; price: number }[]
 ) => {
   const db = await getDBConnection();
-  await deleteOldOrders();
   const [result] = await db.executeSql(
     'INSERT INTO orders (customerId, total, date, status) VALUES (?, ?, ?, ?)',
     [customerId, total, date, status]
@@ -193,25 +192,10 @@ export const insertOrder = async (
 };
 
 export const deleteOldOrders = async () => {
-  const db = await getDBConnection();
-  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  
-  const [results] = await db.executeSql('SELECT id FROM orders WHERE date < ?', [twentyFourHoursAgo]);
-  
-  const orderIds: number[] = [];
-  for (let i = 0; i < results.rows.length; i++) {
-    orderIds.push(results.rows.item(i).id);
-  }
-  
-  if (orderIds.length > 0) {
-    const placeholders = orderIds.map(() => '?').join(',');
-    await db.executeSql(`DELETE FROM order_items WHERE orderId IN (${placeholders})`, orderIds);
-    await db.executeSql(`DELETE FROM orders WHERE id IN (${placeholders})`, orderIds);
-  }
+  // No-op: user requested not to automatically remove orders
 };
 
 export const getLastOrderForCustomer = async (customerId: number) => {
-  await deleteOldOrders();
   const db = await getDBConnection();
   const [results] = await db.executeSql(
     'SELECT * FROM orders WHERE customerId = ? ORDER BY date DESC LIMIT 1',
@@ -225,7 +209,6 @@ export const getLastOrderForCustomer = async (customerId: number) => {
 };
 
 export const getOrdersWithinLast24Hours = async () => {
-  await deleteOldOrders();
   const db = await getDBConnection();
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
@@ -244,3 +227,36 @@ export const getOrdersWithinLast24Hours = async () => {
   }
   return items;
 };
+
+export const deleteOrder = async (orderId: number) => {
+  const db = await getDBConnection();
+  await db.executeSql('DELETE FROM order_items WHERE orderId = ?', [orderId]);
+  await db.executeSql('DELETE FROM orders WHERE id = ?', [orderId]);
+};
+
+export const getAllOrders = async (searchQuery?: string) => {
+  const db = await getDBConnection();
+  
+  let query = `
+    SELECT o.id, o.customerId, o.total, o.date, o.status, c.name as customerName
+    FROM orders o
+    LEFT JOIN customers c ON c.id = o.customerId
+  `;
+  const params: any[] = [];
+  
+  if (searchQuery && searchQuery.trim() !== '') {
+    query += ` WHERE (CAST(o.id AS TEXT) LIKE ? OR c.name LIKE ?) `;
+    params.push(`%${searchQuery}%`, `%${searchQuery}%`);
+  }
+  
+  query += ` ORDER BY o.date DESC`;
+  
+  const [results] = await db.executeSql(query, params);
+  
+  const items: OrderRecord[] = [];
+  for (let i = 0; i < results.rows.length; i++) {
+    items.push(results.rows.item(i) as OrderRecord);
+  }
+  return items;
+};
+

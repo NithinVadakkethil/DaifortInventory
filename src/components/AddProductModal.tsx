@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   absoluteOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   modalContent: {
     width: 720,
@@ -360,13 +360,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   title: {
-    ...typography.headlineSmall,
+    ...typography.headlineMd,
     color: colors.onSurface,
     fontWeight: '800',
     letterSpacing: -0.5,
   },
   subtitle: {
-    ...typography.bodySmall,
+    ...typography.bodyMd,
     color: colors.onSurfaceVariant,
     marginTop: 2,
   },
@@ -386,6 +386,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.surfaceContainerHigh,
   },
+  imageSectionHeader: {
+    marginBottom: spacing.m,
+  },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -401,12 +404,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionTitle: {
-    ...typography.titleMedium,
+    ...typography.titleMd,
     color: colors.onSurface,
     fontWeight: '700',
   },
   sectionSubtitle: {
-    ...typography.bodySmall,
+    ...typography.bodyMd,
     color: colors.onSurfaceVariant,
     marginBottom: spacing.m,
     marginLeft: 40,
@@ -419,7 +422,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.m,
   },
   label: {
-    ...typography.labelLarge,
+    ...typography.labelMd,
     color: colors.onSurfaceVariant,
     marginBottom: spacing.xs,
     fontWeight: '700',
@@ -463,7 +466,7 @@ const styles = StyleSheet.create({
     padding: spacing.s,
   },
   placeholderText: {
-    ...typography.labelSmall,
+    ...typography.labelSm,
     fontSize: 10,
     color: colors.outline,
     marginTop: spacing.xs,
@@ -508,7 +511,7 @@ const styles = StyleSheet.create({
     borderRightColor: colors.surfaceContainerHigh,
   },
   urlInput: {
-    ...typography.bodySmall,
+    ...typography.bodyMd,
     fontSize: 9,
     color: colors.onSurfaceVariant,
     paddingHorizontal: spacing.s,
@@ -539,7 +542,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.s,
   },
   addCardText: {
-    ...typography.labelSmall,
+    ...typography.labelSm,
     color: colors.primary,
     fontWeight: '700',
   },
@@ -555,7 +558,7 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
   },
   submitText: {
-    ...typography.labelLarge,
+    ...typography.labelMd,
     color: colors.onPrimary,
     fontWeight: '800',
     letterSpacing: 1,
