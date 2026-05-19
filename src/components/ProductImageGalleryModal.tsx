@@ -15,9 +15,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FastImage from 'react-native-fast-image';
-import { X, Image as ImageIcon, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { X, Image as ImageIcon, ShoppingCart, ChevronLeft, ChevronRight, Check } from 'lucide-react-native';
 import { colors, spacing, typography, rounded } from '../theme';
 import { Product } from '../hooks/useProducts';
+import { useCartStore } from '../store/useCartStore';
 
 interface ProductImageGalleryModalProps {
   product: Product | null;
@@ -93,6 +94,9 @@ export const ProductImageGalleryModal = ({
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
+  const items = useCartStore((state) => state.items);
+  const isInCart = product ? items.some((item) => item.product.id === product.id) : false;
+
   // Reset active page and show controls when product changes or modal opens
   useEffect(() => {
     if (visible) {
@@ -139,7 +143,6 @@ export const ProductImageGalleryModal = ({
 
   const handleAddToCart = () => {
     onAddToCart(product);
-    onClose();
   };
 
   const toggleControls = () => {
@@ -256,12 +259,22 @@ export const ProductImageGalleryModal = ({
               </View>
 
               <TouchableOpacity
-                style={styles.addToCartBtn}
+                style={[styles.addToCartBtn, isInCart && styles.addedBtn]}
                 onPress={handleAddToCart}
                 activeOpacity={0.8}
+                disabled={isInCart}
               >
-                <ShoppingCart size={20} color={colors.onPrimary} />
-                <Text style={styles.addToCartBtnText}>Add to Order</Text>
+                {isInCart ? (
+                  <>
+                    <Check size={20} color="#ffffff" />
+                    <Text style={styles.addToCartBtnText}>Added!</Text>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart size={20} color={colors.onPrimary} />
+                    <Text style={styles.addToCartBtnText}>Add to Order</Text>
+                  </>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -457,5 +470,8 @@ const styles = StyleSheet.create({
     ...typography.labelMd,
     color: colors.onPrimary,
     fontWeight: '700',
+  },
+  addedBtn: {
+    backgroundColor: '#10b981', // Success green
   },
 });

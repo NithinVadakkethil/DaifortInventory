@@ -1,4 +1,5 @@
 import { Linking } from 'react-native';
+import Share from 'react-native-share';
 import { CartItemType } from '../store/useCartStore';
 import { CustomerType } from '../store/useCustomerStore';
 
@@ -46,36 +47,28 @@ export const shareOrderToWhatsApp = async (
   }
 
   const message = buildOrderMessage(items, customer, total);
-  const cleanPhone = customer?.phone ? customer.phone.replace(/[^0-9]/g, '') : '';
-  
-  // Format local UK numbers if needed (e.g. 07123... -> 447123...)
-  let formattedPhone = cleanPhone;
-  if (cleanPhone && cleanPhone.startsWith('0') && !cleanPhone.startsWith('00')) {
-    formattedPhone = '44' + cleanPhone.substring(1);
-  } else if (cleanPhone && cleanPhone.startsWith('00')) {
-    formattedPhone = cleanPhone.substring(2);
-  }
 
   try {
     // Check if the WhatsApp app is installed via custom URL scheme
     const canOpen = await Linking.canOpenURL('whatsapp://');
     
     if (canOpen) {
-      const appUrl = formattedPhone
-        ? `whatsapp://send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`
-        : `whatsapp://send?text=${encodeURIComponent(message)}`;
+      // Opening without a phone number prompts the user to select a chat or group inside WhatsApp
+      const appUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
       await Linking.openURL(appUrl);
       return true;
     } else {
-      // Fallback to WhatsApp Web/API
-      const webUrl = formattedPhone
-        ? `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`
-        : `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
-      await Linking.openURL(webUrl);
+      // Fallback to the native Share sheet (allows sharing to WhatsApp if available/via extensions, or copying)
+      const shareOptions = {
+        message: message,
+        failOnCancel: false,
+      };
+      await Share.open(shareOptions);
       return true;
     }
   } catch (error) {
-    console.error('Failed to share order to WhatsApp:', error);
+    console.error('Failed to share order:', error);
     return false;
   }
 };
+

@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getOrdersWithinLast24Hours, OrderRecord } from '../data/db';
+import { getAllOrders, OrderRecord } from '../data/db';
 
-export const useOrders = () => {
+export const useOrders = (searchQuery: string = '') => {
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const items = await getOrdersWithinLast24Hours();
+      const items = await getAllOrders(searchQuery);
       setOrders(items);
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [searchQuery]);
 
   useEffect(() => {
     fetchOrders();

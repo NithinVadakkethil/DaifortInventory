@@ -58,7 +58,6 @@ export const ProductCatalogScreen = ({ isCartOpen = true }: { isCartOpen?: boole
         onClose={() => setSelectedProduct(null)}
         onAddToCart={(product) => {
           addItem(product);
-          setSelectedProduct(null);
         }}
       />
 

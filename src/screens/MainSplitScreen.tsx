@@ -22,13 +22,13 @@ if (
   Platform.OS === 'android' &&
   UIManager.setLayoutAnimationEnabledExperimental
 ) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
+  UIManager.setLayoutAnimationEnabledExperimental(false);
 }
 
 export const MainSplitScreen = () => {
   const [activeTab, setActiveTab] = useState('catalog');
-  const [isCartOpen, setIsCartOpen] = useState(true);
-  
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
   // Track total items in cart to display in floating handle badge when closed
   const items = useCartStore((state) => state.items);
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 999,
-    
+
     // Smooth sliding shadows
     shadowColor: '#000',
     shadowOffset: { width: -4, height: 4 },
