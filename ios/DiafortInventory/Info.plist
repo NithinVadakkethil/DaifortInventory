@@ -71,11 +71,15 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
-	<key>LSApplicationQueriesSchemes</key>
+<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>whatsapp</string>
 	</array>
+
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 </dict>
 </plist>
