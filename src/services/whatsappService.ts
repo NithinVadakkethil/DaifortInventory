@@ -37,13 +37,15 @@ Total Items: ${totalItems}
 Total Amount: £${total.toFixed(2)}`;
 };
 
+export type ShareResult = 'success' | 'cancelled' | 'failed';
+
 export const shareOrderToWhatsApp = async (
   items: CartItemType[],
   customer: CustomerType | null,
   total: number
-) => {
+): Promise<ShareResult> => {
   if (items.length === 0) {
-    return false;
+    return 'failed';
   }
 
   const message = buildOrderMessage(items, customer, total);
@@ -56,19 +58,29 @@ export const shareOrderToWhatsApp = async (
       // Opening without a phone number prompts the user to select a chat or group inside WhatsApp
       const appUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
       await Linking.openURL(appUrl);
-      return true;
+      return 'success';
     } else {
       // Fallback to the native Share sheet (allows sharing to WhatsApp if available/via extensions, or copying)
       const shareOptions = {
         message: message,
-        failOnCancel: false,
+        failOnCancel: true,
       };
-      await Share.open(shareOptions);
-      return true;
+      const result = await Share.open(shareOptions);
+      return result.success ? 'success' : 'failed';
     }
-  } catch (error) {
+  } catch (error: any) {
+    const errMsg = error?.message || String(error);
+    if (
+      errMsg.includes('User did not share') || 
+      errMsg.includes('UserCanceled') || 
+      errMsg.includes('CANCELLED') || 
+      errMsg.includes('cancelled')
+    ) {
+      console.log('Share cancelled by user');
+      return 'cancelled';
+    }
     console.error('Failed to share order:', error);
-    return false;
+    return 'failed';
   }
 };
 

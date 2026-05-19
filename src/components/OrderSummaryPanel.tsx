@@ -26,7 +26,7 @@ export const OrderSummaryPanel = () => {
     setIsCheckingOut(true);
     const shareResult = await shareOrderToWhatsApp(items, selectedCustomer, total);
     
-    if (shareResult) {
+    if (shareResult === 'success') {
       // Save order to database
       try {
         const orderItems = items.map(item => ({
@@ -58,13 +58,14 @@ export const OrderSummaryPanel = () => {
         });
         clearCart();
       }
-    } else {
+    } else if (shareResult === 'failed') {
       Toast.show({
         type: 'error',
         text1: 'Error',
         text2: 'Could not share order to WhatsApp.',
       });
     }
+    // If shareResult is 'cancelled', we do nothing (the cart is preserved and no error is shown)
     
     setIsCheckingOut(false);
   };
