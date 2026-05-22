@@ -5,7 +5,7 @@ const INITIAL_CATEGORIES = [
   { name: 'Cutlery', image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=600&q=80' },
   { name: 'Flask', image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=600&q=80' },
   { name: 'Knife', image: 'https://images.unsplash.com/photo-1593618998160-e34014e67546?auto=format&fit=crop&w=600&q=80' },
-  { name: 'Pots & Pans', image: 'https://images.unsplash.com/photo-1556909172-054557397d2a?auto=format&fit=crop&w=600&q=80' },
+  { name: 'Pots & Pans', image: 'https://images.unsplash.com/photo-1583778176476-4a8b02a64c01?auto=format&fit=crop&w=600&q=80' },
 ];
 
 const INITIAL_PRODUCTS = [

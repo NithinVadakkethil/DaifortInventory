@@ -98,6 +98,7 @@ export const ProductImageGalleryModal = ({
   // Custom price and qty states
   const [negotiatedPrice, setNegotiatedPrice] = useState<string>('');
   const [quantity, setQuantity] = useState<number>(1);
+  const [quantityText, setQuantityText] = useState<string>('1');
 
   const scrollRef = useRef<ScrollView>(null);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
@@ -167,6 +168,28 @@ export const ProductImageGalleryModal = ({
       }
     }
   }, [activeProduct, cartItem]);
+
+  // Sync quantityText state with quantity
+  useEffect(() => {
+    setQuantityText(quantity.toString());
+  }, [quantity]);
+
+  const handleQuantityTextChange = (text: string) => {
+    setQuantityText(text);
+    const parsed = parseInt(text, 10);
+    if (!isNaN(parsed) && parsed > 0) {
+      setQuantity(parsed);
+    }
+  };
+
+  const handleQuantityTextBlur = () => {
+    const parsed = parseInt(quantityText, 10);
+    if (isNaN(parsed) || parsed <= 0) {
+      setQuantityText(quantity.toString());
+    } else {
+      setQuantity(parsed);
+    }
+  };
 
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offset = e.nativeEvent.contentOffset.x;
@@ -328,9 +351,9 @@ export const ProductImageGalleryModal = ({
                     <Text style={styles.originalPriceText}>£{activeProduct.price.toFixed(2)}</Text>
                   </View>
 
-                  {/* Negotiated Price Edit Input */}
+                  {/* Unit Price Edit Input */}
                   <View style={styles.inputBlock}>
-                    <Text style={styles.metaLabel}>Negotiated Price (£)</Text>
+                    <Text style={styles.metaLabel}>Unit Price (£)</Text>
                     <View style={styles.textInputWrapper}>
                       <TextInput
                         style={styles.negotiatedInput}
@@ -353,7 +376,14 @@ export const ProductImageGalleryModal = ({
                       >
                         <Minus size={16} color="#ffffff" />
                       </TouchableOpacity>
-                      <Text style={styles.qtyValText}>{quantity}</Text>
+                      <TextInput
+                        style={styles.qtyValInput}
+                        keyboardType="number-pad"
+                        value={quantityText}
+                        onChangeText={handleQuantityTextChange}
+                        onBlur={handleQuantityTextBlur}
+                        selectTextOnFocus
+                      />
                       <TouchableOpacity
                         style={styles.stepperBtn}
                         onPress={() => setQuantity((q) => q + 1)}
@@ -657,6 +687,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     minWidth: 24,
     textAlign: 'center',
+  },
+  qtyValInput: {
+    ...typography.titleMd,
+    color: '#ffffff',
+    fontWeight: '700',
+    minWidth: 32,
+    textAlign: 'center',
+    padding: 0,
   },
   actionRow: {
     flexDirection: 'row',
