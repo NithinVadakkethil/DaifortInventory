@@ -1,4 +1,5 @@
-import RNHTMLtoPDF from 'react-native-html-to-pdf';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const RNHTMLtoPDF = require('react-native-html-to-pdf').default || require('react-native-html-to-pdf');
 import Share from 'react-native-share';
 import { CartItemType } from '../store/useCartStore';
 import { CustomerType } from '../store/useCustomerStore';
@@ -64,16 +65,17 @@ export const generateInvoiceAndShare = async (
           </thead>
           <tbody>
             ${items
-              .map(
-                (item) => `
-              <tr>
-                <td>${item.product.name}</td>
-                <td>${item.quantity}</td>
-                <td>£${item.product.price.toFixed(2)}</td>
-                <td>£${(item.quantity * item.product.price).toFixed(2)}</td>
-              </tr>
-            `
-              )
+              .map((item) => {
+                const price = item.negotiatedPrice ?? item.product.price;
+                return `
+                <tr>
+                  <td>${item.product.name}</td>
+                  <td>${item.quantity}</td>
+                  <td>£${price.toFixed(2)}</td>
+                  <td>£${(item.quantity * price).toFixed(2)}</td>
+                </tr>
+              `;
+              })
               .join('')}
           </tbody>
         </table>

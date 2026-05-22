@@ -26,7 +26,12 @@ export const CartItem = ({ item }: CartItemProps) => {
         <Text style={styles.name} numberOfLines={2}>
           {product.name}
         </Text>
-        <Text style={styles.price}>£{(product.price * quantity).toFixed(2)}</Text>
+        <View style={styles.priceRow}>
+          <Text style={styles.price}>£{((item.negotiatedPrice ?? product.price) * quantity).toFixed(2)}</Text>
+          {item.negotiatedPrice !== undefined && item.negotiatedPrice !== product.price && (
+            <Text style={styles.originalPrice}>£{(product.price * quantity).toFixed(2)}</Text>
+          )}
+        </View>
         
         <View style={styles.actions}>
           <View style={styles.stepper}>
@@ -78,11 +83,22 @@ const styles = StyleSheet.create({
     color: colors.onSurface,
     marginBottom: spacing.xs,
   },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.s,
+    marginBottom: spacing.s,
+  },
   price: {
     ...typography.bodyMd,
     fontWeight: '600',
     color: colors.primary,
-    marginBottom: spacing.s,
+  },
+  originalPrice: {
+    ...typography.bodyMd,
+    textDecorationLine: 'line-through',
+    color: colors.outline,
+    fontSize: 12,
   },
   actions: {
     flexDirection: 'row',

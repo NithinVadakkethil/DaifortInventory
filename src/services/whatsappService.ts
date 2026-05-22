@@ -20,8 +20,11 @@ const buildOrderMessage = (
 
   const productDetails = items
     .map((item, index) => {
-      const lineTotal = item.quantity * item.product.price;
-      return `${index + 1}. ${item.product.name} | Qty: ${item.quantity} | Unit: £${item.product.price.toFixed(2)} | Total: £${lineTotal.toFixed(2)}`;
+      const price = item.negotiatedPrice ?? item.product.price;
+      const lineTotal = item.quantity * price;
+      const isNegotiated = item.negotiatedPrice !== undefined && item.negotiatedPrice !== item.product.price;
+      const negotiatedSuffix = isNegotiated ? ` (negotiated from £${item.product.price.toFixed(2)} unit)` : '';
+      return `${index + 1}. ${item.product.name} | Qty: ${item.quantity} | Unit: £${price.toFixed(2)}${negotiatedSuffix} | Total: £${lineTotal.toFixed(2)}`;
     })
     .join('\n');
 

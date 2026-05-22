@@ -71,12 +71,21 @@ export const createTables = async (db: SQLite.SQLiteDatabase) => {
     );
   `;
 
+  const queryCategories = `
+    CREATE TABLE IF NOT EXISTS categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      image TEXT
+    );
+  `;
+
   try {
     await db.executeSql(queryProducts);
     await db.executeSql(queryCustomers);
     await db.executeSql(queryOrders);
     await db.executeSql(queryOrderItems);
     await db.executeSql(queryProductImages);
+    await db.executeSql(queryCategories);
   } catch (error) {
     console.error('Error creating tables', error);
   }
@@ -259,4 +268,64 @@ export const getAllOrders = async (searchQuery?: string) => {
   }
   return items;
 };
+
+export interface CategoryRecord {
+  id: number;
+  name: string;
+  image: string;
+}
+
+export const insertCategory = async (name: string, image: string) => {
+  const db = await getDBConnection();
+  const query = 'INSERT OR REPLACE INTO categories (name, image) VALUES (?, ?)';
+  await db.executeSql(query, [name, image]);
+};
+
+export const getAllCategories = async (searchQuery?: string): Promise<CategoryRecord[]> => {
+  const db = await getDBConnection();
+  let query = 'SELECT * FROM categories';
+  const params: any[] = [];
+  if (searchQuery && searchQuery.trim() !== '') {
+    query += ' WHERE name LIKE ?';
+    params.push(`%${searchQuery}%`);
+  }
+  query += ' ORDER BY name ASC';
+  const [results] = await db.executeSql(query, params);
+  const items: CategoryRecord[] = [];
+  for (let i = 0; i < results.rows.length; i++) {
+    items.push(results.rows.item(i) as CategoryRecord);
+  }
+  return items;
+};
+
+export const deleteCategory = async (id: number) => {
+  const db = await getDBConnection();
+  await db.executeSql('DELETE FROM categories WHERE id = ?', [id]);
+};
+
+export const updateProduct = async (
+  id: number,
+  name: string,
+  price: number,
+  category: string,
+  image: string,
+  stock: number = 0,
+  additionalImages: string[] = []
+) => {
+  const db = await getDBConnection();
+  const query = 'UPDATE products SET name = ?, price = ?, category = ?, image = ?, stock = ? WHERE id = ?';
+  await db.executeSql(query, [name, price, category, image, stock, id]);
+
+  // Update gallery images
+  const allImages = [image, ...additionalImages.filter(url => url.trim() !== '' && url !== image)];
+  await insertProductImages(db, id, allImages);
+};
+
+export const deleteProduct = async (id: number) => {
+  const db = await getDBConnection();
+  await db.executeSql('DELETE FROM product_images WHERE productId = ?', [id]);
+  await db.executeSql('DELETE FROM order_items WHERE productId = ?', [id]);
+  await db.executeSql('DELETE FROM products WHERE id = ?', [id]);
+};
+
 

@@ -11,11 +11,12 @@ export interface CartItemType {
     stock: number;
   };
   quantity: number;
+  negotiatedPrice?: number;
 }
 
 interface CartState {
   items: CartItemType[];
-  addItem: (product: CartItemType['product']) => void;
+  addItem: (product: CartItemType['product'], quantity?: number, negotiatedPrice?: number) => void;
   removeItem: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
@@ -26,19 +27,32 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      addItem: (product) => {
+      addItem: (product, quantity = 1, negotiatedPrice) => {
         const { items } = get();
-        const existingItem = items.find((item) => item.product.id === product.id);
-        if (existingItem) {
+        const existingItemIndex = items.findIndex((item) => item.product.id === product.id);
+        if (existingItemIndex > -1) {
           set({
-            items: items.map((item) =>
-              item.product.id === product.id
-                ? { ...item, quantity: item.quantity + 1 }
+            items: items.map((item, idx) =>
+              idx === existingItemIndex
+                ? {
+                    ...item,
+                    quantity: quantity,
+                    negotiatedPrice: negotiatedPrice !== undefined ? negotiatedPrice : item.negotiatedPrice,
+                  }
                 : item
             ),
           });
         } else {
-          set({ items: [...items, { product, quantity: 1 }] });
+          set({
+            items: [
+              ...items,
+              {
+                product,
+                quantity,
+                negotiatedPrice: negotiatedPrice !== undefined ? negotiatedPrice : product.price,
+              },
+            ],
+          });
         }
       },
       removeItem: (productId) => {
@@ -59,7 +73,7 @@ export const useCartStore = create<CartState>()(
       },
       clearCart: () => set({ items: [] }),
       getCartTotal: () => {
-        return get().items.reduce((total, item) => total + item.product.price * item.quantity, 0);
+        return get().items.reduce((total, item) => total + (item.negotiatedPrice ?? item.product.price) * item.quantity, 0);
       },
     }),
     {

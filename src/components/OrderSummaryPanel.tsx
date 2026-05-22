@@ -32,7 +32,7 @@ export const OrderSummaryPanel = () => {
         const orderItems = items.map(item => ({
           productId: item.product.id,
           quantity: item.quantity,
-          price: item.product.price
+          price: item.negotiatedPrice ?? item.product.price
         }));
         
         await insertOrder(
